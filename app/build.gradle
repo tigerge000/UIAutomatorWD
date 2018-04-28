@@ -1,17 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    buildToolsVersion rootProject.buildToolsVersion
+    buildToolsVersion "27.0.3"
     defaultConfig {
-        compileSdkVersion 26
-        minSdkVersion 18
-        targetSdkVersion 18
+        compileSdkVersion 25
+        minSdkVersion 23
+        targetSdkVersion 25
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        jackOptions {
-            enabled true
-        }
     }
     buildTypes {
         release {
@@ -21,7 +18,7 @@ android {
     }
     productFlavors {
     }
-    buildToolsVersion '25.0.2'
+    buildToolsVersion '27.0.3'
     testOptions {
         unitTests.all {
             testLogging {
@@ -40,8 +37,8 @@ android {
 }
 
 dependencies {
-    androidTestCompile 'com.android.support.test:runner:' + rootProject.runnerVersion;
-    androidTestCompile 'com.android.support.test.uiautomator:uiautomator-v18:' + rootProject.uiautomatorVersion;
-    compile 'org.nanohttpd:nanohttpd:' + rootProject.nanohttpdVersion;
-    compile 'com.alibaba:fastjson:' + rootProject.fastjsonVersion;
+    androidTestImplementation 'com.android.support.test:runner:1.0.2';
+    androidTestImplementation 'com.android.support.test.uiautomator:uiautomator-v18:2.1.2';
+    implementation 'org.nanohttpd:nanohttpd:2.3.1'
+    implementation 'com.alibaba:fastjson:1.2.47';
 }
