@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="app_name">UiAutomator sample</string>
+    <string name="app_name">UiAutomator</string>
     <string name="hello_world">Hello UiAutomator!</string>
     <string name="change_text">Change text</string>
     <string name="type_something">type something…</string>

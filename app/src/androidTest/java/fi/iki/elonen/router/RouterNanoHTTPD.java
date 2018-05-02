@@ -33,7 +33,13 @@ package fi.iki.elonen.router;
  * #L%
  */
 
+import android.os.Looper;
+import android.widget.Toast;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.macaca.android.testing.server.models.Methods;
+import com.macaca.android.testing.server.xmlUtils.InputStreamUtils;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -55,6 +61,12 @@ import java.util.regex.Pattern;
 import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoHTTPD.Response.IStatus;
 import fi.iki.elonen.NanoHTTPD.Response.Status;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
 
 /**
  * @author vnnv
@@ -334,13 +346,22 @@ public class RouterNanoHTTPD extends NanoHTTPD {
             this.initParameter = initParameter;
             if (uri != null) {
                 this.uri = normalizeUri(uri);
-                this.uriPattern = createUriPattern();
+                if(uri.equals("/wd/hub/session")){
+                    this.uriPattern = Pattern.compile("\\*");
+                }else {
+                    this.uriPattern = createUriPattern();
+                }
+
             } else {
                 this.uriPattern = null;
                 this.uri = null;
             }
             this.method = method;
-            this.priority = priority + uriParams.size() * 1000;
+            if(uri.equals("/wd/hub/session")){
+                this.priority = priority + 666 * 1000;
+            }else {
+                this.priority = priority + uriParams.size() * 1000;
+            }
         }
 
         private Pattern createUriPattern() {
@@ -430,8 +451,16 @@ public class RouterNanoHTTPD extends NanoHTTPD {
                 } else {
                     return EMPTY;
                 }
+            }else if(url.equals("wd/hub/session")){
+                System.out.println("hahahahahah");
+                return EMPTY;
             }
             return null;
+        }
+
+        public static void main(String[] args) {
+            String url = "/wd/hub/session/5d8499ad-3500-4a02-b7d5-0006694d8220/elements";
+//            UriResource uriResource = new UriResource(url,"post",)
         }
 
     }
@@ -459,11 +488,21 @@ public class RouterNanoHTTPD extends NanoHTTPD {
          * @return
          */
         public Response process(IHTTPSession session) {
+
+            UriResource uriResource = error404Url;
+
+
+            //好不容易写出来的，这代码结构难呀
+            if(session.getUri().equals("/wd/hub/session")){
+                return doProcess(session);
+            }
+
             String work = normalizeUri(session.getUri());
             Map<String, String> params = null;
-            UriResource uriResource = error404Url;
+
             for (UriResource u : mappings) {
                 params = u.match(work);
+
                 if (params != null) {
                     uriResource = u;
                     break;
@@ -474,6 +513,81 @@ public class RouterNanoHTTPD extends NanoHTTPD {
                 return null;
             }
             return uriResource.process(params, session);
+        }
+
+
+        /**
+         * 获取 sessionId
+         * @param session
+         * @return
+         */
+        private Response doProcess(IHTTPSession session){
+            Map<String, String> body = new HashMap<String, String>();
+
+
+            Map<String, String> files = new HashMap<String, String>();
+            Method method = session.getMethod();
+            if (Method.PUT.equals(method) || Method.POST.equals(method)) {
+                try {
+                    session.parseBody(files);
+                } catch (IOException ioe) {
+                    return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
+                } catch (ResponseException re) {
+                    return newFixedLengthResponse(re.getStatus(), NanoHTTPD.MIME_PLAINTEXT, re.getMessage());
+                }
+            }
+
+            String postData = files.get("postData");
+            JSONObject desiredCapabilities = null;
+            desiredCapabilities = JSON.parseObject(postData).getJSONObject("desiredCapabilities");
+
+            String sessionId = "";
+
+            String packageName = desiredCapabilities.getString("packageName");
+
+            sessionId = "5d8499ad-3500-4a02-b7d5-0006694d8220";
+
+            JSONObject result = new JSONObject();
+            result.put("sessionId","5d8499ad-3500-4a02-b7d5-0006694d8220");
+            result.put("status",0);
+            result.put("value",desiredCapabilities);
+
+            Map<String,Object> params = new HashMap<String,Object>();
+            params.put("command","monkey -p " + packageName + " -c android.intent.category.LAUNCHER 1");
+
+            Request request = new Request.Builder()
+                    .url("http://127.0.0.1:7912/shell")
+                    .post(setPostBody(params))
+                    .build();
+            try {
+                new OkHttpClient().newCall(request).execute();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.OK, "", result.toJSONString());
+        }
+
+        /**
+         * 设置post表单请求
+         * @param params
+         * @return
+         */
+        private RequestBody setPostBody(Map<String,Object> params){
+
+            RequestBody body = null;
+
+            FormBody.Builder formBodyBuilder = new FormBody.Builder();
+
+            if(params != null){
+                for (String key:params.keySet()){
+                    formBodyBuilder.add(key,params.get(key).toString());
+                }
+            }
+
+            body = formBodyBuilder.build();
+
+            return body;
         }
 
         private void addRoute(String url, String method, int priority, Object handlerObject, Object... initParameter) {
@@ -500,13 +614,13 @@ public class RouterNanoHTTPD extends NanoHTTPD {
         private void removeRoute(String url) {
             String uriToDelete = normalizeUri(url);
             Iterator<UriResource> iter = mappings.iterator();
-            while (iter.hasNext()) {
-                UriResource uriResource = iter.next();
-                if (uriToDelete.equals(uriResource.getUri())) {
-                    iter.remove();
-                    break;
-                }
-            }
+//            while (iter.hasNext()) {
+//                UriResource uriResource = iter.next();
+//                if (uriToDelete.equals(uriResource.getUri())) {
+//                    iter.remove();
+//                    break;
+//                }
+//            }
         }
 
         public void setNotFoundHandler(Class<?> handler) {

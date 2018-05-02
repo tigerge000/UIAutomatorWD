@@ -20,6 +20,8 @@ public class SessionController extends RouterNanoHTTPD.DefaultHandler {
     public static SessionController getSessions;
     public static SessionController delSession;
 
+    public static SessionController setSession;
+
     static {
         sessionAvailable = new SessionController() {
             @Override
@@ -46,6 +48,13 @@ public class SessionController extends RouterNanoHTTPD.DefaultHandler {
         };
 
         delSession = new SessionController() {
+            @Override
+            public NanoHTTPD.Response get(RouterNanoHTTPD.UriResource uriResource, Map<String, String> urlParams, NanoHTTPD.IHTTPSession session) {
+                String sessionId = urlParams.get("sessionId");
+                return NanoHTTPD.newFixedLengthResponse(getStatus(), getMimeType(), new Response(Status.NoSuchElement, sessionId).toString());
+            }
+        };
+        setSession = new SessionController() {
             @Override
             public NanoHTTPD.Response get(RouterNanoHTTPD.UriResource uriResource, Map<String, String> urlParams, NanoHTTPD.IHTTPSession session) {
                 String sessionId = urlParams.get("sessionId");

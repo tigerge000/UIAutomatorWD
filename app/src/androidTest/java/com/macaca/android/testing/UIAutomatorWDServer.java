@@ -18,6 +18,8 @@ public class UIAutomatorWDServer extends RouterNanoHTTPD {
 
     private String sessionRoutePrefix = "/wd/hub/session/:sessionId";
 
+    private String setSession = "/wd/hub/session";
+
     private UIAutomatorWDServer(int port) throws IOException {
         super(port);
 
@@ -28,6 +30,8 @@ public class UIAutomatorWDServer extends RouterNanoHTTPD {
         //addRoute("/wd/hub/session", Methods.POST, SessionController.createSession);
         //addRoute("/wd/hub/sessions", Methods.GET, SessionController.getSessions);
         //addRoute("/wd/hub/session/:sessionId", Methods.DELETE, SessionController.delSession);
+
+        addRoute(setSession,Methods.POST,SessionController.setSession);
 
         //Window Router
         addRoute(sessionRoutePrefix + "/window_handle", Methods.GET, WindowController.getWindow);

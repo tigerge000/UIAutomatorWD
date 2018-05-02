@@ -82,4 +82,11 @@
         android:layout_marginLeft="10sp"
         android:text="端口: " />
 
+    <TextView
+        android:id="@+id/shell_port"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10sp"
+        android:text="shell端口: " />
+
 </LinearLayout>

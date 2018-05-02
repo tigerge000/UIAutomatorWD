@@ -12,6 +12,7 @@ import com.macaca.android.testing.server.common.Elements;
 import com.macaca.android.testing.server.xmlUtils.InteractionController;
 import com.macaca.android.testing.server.xmlUtils.NodeInfoList;
 import com.macaca.android.testing.server.xmlUtils.ReflectionUtils;
+import com.macaca.android.testing.server.xmlUtils.StringUnicodeUtils;
 import com.macaca.android.testing.server.xmlUtils.UiAutomatorBridge;
 import com.macaca.android.testing.server.xmlUtils.XPathSelector;
 import com.macaca.android.testing.server.xmlUtils.MUiDevice;
@@ -349,6 +350,7 @@ public class ElementController extends RouterNanoHTTPD.DefaultHandler {
 
     private static BySelector getSelector(String strategy, String text) throws Exception {
         BySelector selector = null;
+        text = StringUnicodeUtils.unicode2String(text);
         switch (strategy) {
             case "CLASS_NAME":
                 selector = By.clazz(text);

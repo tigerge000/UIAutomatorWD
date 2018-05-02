@@ -22,7 +22,8 @@ public class UIAutomatorWD {
     public void MacacaTestRunner() throws Exception {
         Bundle args = InstrumentationRegistry.getArguments();
 
-        int port = 9001;
+        int port = 10000;
+//        int port = 9001;
         if (args.containsKey("port")) {
             port = Integer.parseInt(args.getString("port"));
         }
